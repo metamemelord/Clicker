@@ -32,6 +32,7 @@ def record_click_sequence():
                     pass
 
             if b != state_right:  # Button state changed
+                pass
                 state_right = b
                 if b < 0:
                     print('Right Button Pressed')
