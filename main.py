@@ -5,6 +5,28 @@ import pyautogui as pagui
 from random import randint
 import win32api
 import time
+import sys
+
+def print_help():
+    print("""
+Clicker - Mouse Click Automation Script
+
+Usage:
+    python main.py [OPTIONS]
+
+Options:
+    -h, --help              Show this help message and exit
+    -t, --terminate SECONDS Terminate the script after SECONDS seconds
+
+Instructions:
+    1. Run the script.
+    2. Left-click to record positions (each click is saved).
+    3. Press Ctrl+C to stop recording and start the auto-clicker.
+    4. The script will click the recorded positions in a loop with random delays.
+
+Example:
+    python main.py --terminate 60
+    """)
 
 def click(x, y, delay_ms=0, move_first=True):
     while delay_ms > 0:
@@ -44,15 +66,34 @@ def record_click_sequence():
     return positions
         
 try:
-    print("Recording clicks")
+    termination_time = float('inf')
+    args = sys.argv[1:]
+    if len(args) > 0:
+        if  (args[0] == "--terminate" or args[0] == "-t"):
+            try:
+                termination_time = int(args[1])
+                print("Script will terminate after %d seconds"%termination_time)
+            except (ValueError, IndexError):
+                print("Invalid argument for --terminate, expected an integer value")
+                print_help()
+                sys.exit(1)
+        if (args[0] == "--help" or args[0] == "-h"):
+            print_help()
+            sys.exit(0)
+    print("Recording clicks") 
     positions = record_click_sequence()
     assert len(positions) > 0
     print("Positions to click", positions)
     counter = 0
+    total_time_slept = 0
     while True:
         delay = randint(2, 10)
+        total_time_slept += delay
         print("Sleeping for %s seconds and then clicking (%d, %d) now."%(delay, positions[counter][0], positions[counter][1]))
         click(positions[counter][0], positions[counter][1], delay*1000)
+        if total_time_slept >= termination_time:
+            print("Total time slept exceeded the termination time, exiting!")
+            break
         counter = (counter+1)%len(positions)
 except AssertionError:
     print("No clickes were recorded")
